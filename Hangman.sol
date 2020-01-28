@@ -20,9 +20,13 @@ contract Hangman {
         guessesLeft = MAX_GUESSES;
     }
     
+    // Allows to enter a new word into the list of words.
+    // The proposed word must match [A-Z]+
     function proposeWord(string memory word) public {
-        proposedWords[nextIndex] = word;
-        nextIndex += 1; // TODO: limit #words?
+        if (WordRegex.matches(word)) {
+            proposedWords[nextIndex] = word;
+            nextIndex += 1; // TODO: limit #words?
+        }
     }
     
     function guessLetter(byte letter) public {
