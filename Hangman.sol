@@ -1,13 +1,13 @@
 pragma solidity >=0.4.22 <0.6.0;
 
 contract Hangman {
-    uint256 MAX_GUESSES = 11;
+    uint MAX_GUESSES = 11;
     string[5] WORDS = ["test", "hangman", "ethereum", "cryptocurrency", "foo"];
     
     bytes solvedBytes;
-    uint256 guessesLeft;
+    uint guessesLeft;
     
-    uint256 internal nextIndex;
+    uint internal nextIndex;
     
     bytes internal currentWord;
     
@@ -55,7 +55,7 @@ contract Hangman {
             return false;
         }
         
-        for (uint256 i = 0; i < wordBytes.length; i++) {
+        for (uint i = 0; i < wordBytes.length; i++) {
             if (wordBytes[i] != currentWord[i]) {
                 return false;
             }
@@ -66,8 +66,7 @@ contract Hangman {
     }
     
     function getPuzzleState() public view returns(string memory state) {
-        // TODO: output of guessesLeft is not working
-        return string(abi.encodePacked(solvedBytes, "\n Number of guesses left: ", guessesLeft));
+        return string(abi.encodePacked(solvedBytes, "\n Number of guesses left: ", uint2str(guessesLeft)));
     }
     
     function nextWord() internal {
@@ -83,12 +82,32 @@ contract Hangman {
             
         // reset solved bytes
         solvedBytes = bytes(currentWord);
-        for (uint256 i = 0; i < solvedBytes.length; i++) {
+        for (uint i = 0; i < solvedBytes.length; i++) {
             solvedBytes[i] = "-";
         }
          
         // reset number of guesses   
         guessesLeft = MAX_GUESSES;
     }
-    
+
+
+    // copied from the internet
+    function uint2str(uint _i) internal pure returns (string memory _uintAsString) {
+        if (_i == 0) {
+            return "0";
+        }
+        uint j = _i;
+        uint len;
+        while (j != 0) {
+            len++;
+            j /= 10;
+        }
+        bytes memory bstr = new bytes(len);
+        uint k = len - 1;
+        while (_i != 0) {
+            bstr[k--] = byte(uint8(48 + _i % 10));
+            _i /= 10;
+        }
+        return string(bstr);
+    }
 }
