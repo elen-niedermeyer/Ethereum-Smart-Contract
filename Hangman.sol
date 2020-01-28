@@ -21,6 +21,8 @@ contract Hangman {
     }
     
     function proposeWord(string memory word) public {
+        proposedWords[nextIndex] = word;
+        nextIndex += 1; // TODO: limit #words?
     }
     
     function guessLetter(byte letter) public {
