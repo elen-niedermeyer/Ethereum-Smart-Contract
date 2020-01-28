@@ -15,7 +15,7 @@ contract Hangman {
         nextIndex = 0;
         nextWord();
     }
-    
+        
     function guessLetter(string memory letter) public returns(string memory message) {
         bytes memory letterBytes = bytes(letter);
         if (letterBytes.length > 1) {
