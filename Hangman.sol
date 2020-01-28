@@ -15,7 +15,7 @@ contract Hangman {
         nextIndex = 0;
         nextWord();
     }
-    
+
     function guessLetter(string memory letter) public returns(string memory message) {
         bytes memory letterBytes = bytes(letter);
         if (letterBytes.length > 1) {
@@ -25,7 +25,7 @@ contract Hangman {
         if (guessesLeft > 0) {
             // guess is allowed
             bool isLetterInWord = false;
-            for (uint256 i = 0; i < currentWord.length; i++) {
+            for (uint i = 0; i < currentWord.length; i++) {
                 if (letterBytes[0] == currentWord[i]) {
                     // letter found!
                     isLetterInWord = true;
@@ -89,7 +89,6 @@ contract Hangman {
         // reset number of guesses   
         guessesLeft = MAX_GUESSES;
     }
-
 
     // copied from the internet
     function uint2str(uint _i) internal pure returns (string memory _uintAsString) {
