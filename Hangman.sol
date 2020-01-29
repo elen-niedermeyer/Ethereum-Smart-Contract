@@ -2,7 +2,8 @@ pragma solidity >=0.4.22 <0.6.0;
 
 contract Hangman {
     uint MAX_GUESSES = 11;
-    string[5] WORDS = ["test", "hangman", "ethereum", "cryptocurrency", "foo"];
+    string[] WORDS = ["test", "hangman", "ethereum", "cryptocurrency", "foo"];
+    uint wordInsertPtr;
     
     bytes solvedBytes;
     uint guessesLeft;
@@ -14,6 +15,15 @@ contract Hangman {
     constructor() public {
         nextIndex = 0;
         nextWord();
+    }
+
+    // Allows to enter a new word into the list of words.
+    // The proposed word must match [a-z]+
+    function proposeWord(string memory word) public {
+        if (WordRegex.matches(word)) {
+            WORDS[wordInsertPtr] = word;
+            wordInsertPtr += 1; // TODO: limit #words?
+        }
     }
 
     function guessLetter(string memory letter) public returns(string memory message) {
