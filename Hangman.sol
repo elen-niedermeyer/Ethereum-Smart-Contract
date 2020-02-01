@@ -68,6 +68,16 @@ contract Hangman {
         return true;
     }
     
+    function isWordSolved() internal view returns(bool){
+        for (uint i = 0; i < solvedBytes.length; i++) {
+            if (solvedBytes[i] == "-") {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+
     function puzzleSolved() internal {
         msg.sender.transfer(msg.value);
         nextWord();
@@ -99,16 +109,6 @@ contract Hangman {
         guessesLeft = MAX_GUESSES;
     }
     
-    function isWordSolved() internal view returns(bool){
-        for (uint i = 0; i < solvedBytes.length; i++) {
-            if (solvedBytes[i] == "-") {
-                return false;
-            }
-        }
-        
-        return true;
-    }
-
     // copied from the internet
     function uint2str(uint _i) internal pure returns (string memory _uintAsString) {
         if (_i == 0) {
