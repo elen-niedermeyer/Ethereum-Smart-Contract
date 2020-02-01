@@ -1,6 +1,9 @@
 pragma solidity >=0.5.0;
 
 contract Hangman {
+    uint LETTER_GUESS_COST = 0.0003 ether; // ~ 5ct on 1st February 2020
+    uint WORD_GUESS_COST = 0.0005 ether; // ~ 8ct on 1st February 2020
+    
     uint MAX_GUESSES = 11;
     string[5] WORDS = ["test", "hangman", "ethereum", "cryptocurrency", "foo"];
     
@@ -24,7 +27,11 @@ contract Hangman {
     }
 
     function guessLetter(string memory letter) public payable {
+        // check payed fee
+        require(msg.value >= LETTER_GUESS_COST, string(abi.encodePacked("Please pay at least ", uint2str(LETTER_GUESS_COST), " wei")));
+        
         bytes memory letterBytes = bytes(letter);
+        // validate input
         require(letterBytes.length == 1, "You have to input only ONE lowercase letter");
         
         bool isLetterInWord = false;
@@ -50,7 +57,10 @@ contract Hangman {
         }
     }
     
-    function guessWord(string memory word) public payable returns(bool) {
+    function guessWord(string memory word) public payable returns(bool) { 
+        // check payed fee
+        require(msg.value >= WORD_GUESS_COST, string(abi.encodePacked("Please pay at least ", uint2str(WORD_GUESS_COST), " wei")));
+        
         bytes memory wordBytes = bytes(word);
        
         if (wordBytes.length != currentWord.length) {
