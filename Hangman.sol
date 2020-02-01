@@ -1,20 +1,30 @@
-pragma solidity >=0.4.22 <0.6.0;
+pragma solidity >=0.5.0;
 
 contract Hangman {
+    uint LETTER_GUESS_COST = 0.0003 ether; // ~ 5ct on 1st February 2020
+    uint WORD_GUESS_COST = 0.0005 ether; // ~ 8ct on 1st February 2020
+    
     uint MAX_GUESSES = 11;
     string[] WORDS = ["test", "hangman", "ethereum", "cryptocurrency", "foo"];
     uint wordInsertPtr;
     
-    bytes solvedBytes;
-    uint guessesLeft;
+    bytes internal currentWord;
+    bytes internal solvedBytes;
+    uint internal guessesLeft;
     
     uint internal nextIndex;
     
-    bytes internal currentWord;
+    address payable private creator;
     
     constructor() public {
+        creator = msg.sender;
+        
         nextIndex = 0;
         nextWord();
+    }
+    
+    function getPuzzleState() public view returns(string memory state) {
+        return string(abi.encodePacked(solvedBytes, "\n Number of guesses left: ", uint2str(guessesLeft)));
     }
 
     // Allows to enter a new word into the list of words.
@@ -26,41 +36,43 @@ contract Hangman {
         }
     }
 
-    function guessLetter(string memory letter) public returns(string memory message) {
+    function guessLetter(string memory letter) public payable {
+        // check payed fee
+        require(msg.value >= LETTER_GUESS_COST, string(abi.encodePacked("Please pay at least ", uint2str(LETTER_GUESS_COST), " wei")));
+
         bytes memory letterBytes = bytes(letter);
-        if (letterBytes.length > 1) {
-            return "You are not allowed to guess a string with more than one character";
+        // validate input
+        require(letterBytes.length == 1, "You have to input only ONE lowercase letter");
+        
+        bool isLetterInWord = false;
+        for (uint i = 0; i < currentWord.length; i++) {
+            if (letterBytes[0] == currentWord[i]) {
+                // letter found!
+                isLetterInWord = true;
+                solvedBytes[i] = letterBytes[0];
+            }
+        }
+            
+        if (isWordSolved()) {
+            puzzleSolved();
+        }
+
+        if (!isLetterInWord) {
+            // letter was not found
+            guessesLeft--;
         }
         
-        if (guessesLeft > 0) {
-            // guess is allowed
-            bool isLetterInWord = false;
-            for (uint i = 0; i < currentWord.length; i++) {
-                if (letterBytes[0] == currentWord[i]) {
-                    // letter found!
-                    isLetterInWord = true;
-                    solvedBytes[i] = letterBytes[0];
-                }
-            }
-            
-            if (isLetterInWord) {
-                return "Letter was in the word";
-            } else {
-                // letter was not found
-                guessesLeft--;
-                return "Letter was not in the word";
-            }
-            
-        } else {
-            // no guesses left for this word
-            nextWord();
-            return "No guesses left for this word. Try the next one.";
+        if (guessesLeft == 0) {
+            puzzleNotSolved();
         }
     }
     
-    function guessWord(string memory word) public returns(bool) {
-        bytes memory wordBytes = bytes(word);
+    function guessWord(string memory word) public payable returns(bool) { 
+        // check payed fee
+        require(msg.value >= WORD_GUESS_COST, string(abi.encodePacked("Please pay at least ", uint2str(WORD_GUESS_COST), " wei")));
         
+        bytes memory wordBytes = bytes(word);
+       
         if (wordBytes.length != currentWord.length) {
             return false;
         }
@@ -71,12 +83,29 @@ contract Hangman {
             }
         }
         
-        nextWord();
+        // word is correct
+        puzzleSolved();
         return true;
     }
     
-    function getPuzzleState() public view returns(string memory state) {
-        return string(abi.encodePacked(solvedBytes, "\n Number of guesses left: ", uint2str(guessesLeft)));
+    function isWordSolved() internal view returns(bool){
+        for (uint i = 0; i < solvedBytes.length; i++) {
+            if (solvedBytes[i] == "-") {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+
+    function puzzleSolved() internal {
+        msg.sender.transfer(msg.value);
+        nextWord();
+    }
+    
+    function puzzleNotSolved() internal {
+        creator.transfer(address(this).balance);
+        nextWord();
     }
     
     function nextWord() internal {
@@ -99,7 +128,7 @@ contract Hangman {
         // reset number of guesses   
         guessesLeft = MAX_GUESSES;
     }
-
+    
     // copied from the internet
     function uint2str(uint _i) internal pure returns (string memory _uintAsString) {
         if (_i == 0) {
