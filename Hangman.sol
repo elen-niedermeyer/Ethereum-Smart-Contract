@@ -1,18 +1,16 @@
-pragma solidity >=0.4.22 <0.6.0;
+pragma solidity >=0.5.0;
 
 contract Hangman {
     uint MAX_GUESSES = 11;
     string[5] WORDS = ["test", "hangman", "ethereum", "cryptocurrency", "foo"];
     
     bytes internal currentWord;
-    bytes solvedBytes;
-    uint guessesLeft;
+    bytes internal solvedBytes;
+    uint internal guessesLeft;
     
     uint internal nextIndex;
     
-    uint amount;
-    
-    address creator;
+    address payable private creator;
     
     constructor() public {
         creator = msg.sender;
@@ -25,55 +23,36 @@ contract Hangman {
         return string(abi.encodePacked(solvedBytes, "\n Number of guesses left: ", uint2str(guessesLeft)));
     }
 
-    function guessLetter(string memory letter) public payable returns(string memory message) {
+    function guessLetter(string memory letter) public payable {
         bytes memory letterBytes = bytes(letter);
+        require(letterBytes.length == 1, "You have to input only ONE lowercase letter");
         
-        // check if it is really only one letter
-        if (letterBytes.length > 1) {
-            // paypack the value to sender
-            (msg.sender).transfer(msg.value);
-            return "You are not allowed to guess a string with more than one character";
+        bool isLetterInWord = false;
+        for (uint i = 0; i < currentWord.length; i++) {
+            if (letterBytes[0] == currentWord[i]) {
+                // letter found!
+                isLetterInWord = true;
+                solvedBytes[i] = letterBytes[0];
+            }
+        }
+            
+        if (isWordSolved()) {
+            puzzleSolved();
+        }
+
+        if (!isLetterInWord) {
+            // letter was not found
+            guessesLeft--;
         }
         
-        if (guessesLeft > 0) {
-            // guess is allowed
-            
-            amount += msg.value;
-            
-            bool isLetterInWord = false;
-            for (uint i = 0; i < currentWord.length; i++) {
-                if (letterBytes[0] == currentWord[i]) {
-                    // letter found!
-                    isLetterInWord = true;
-                    solvedBytes[i] = letterBytes[0];
-                }
-            }
-            
-            if (isLetterInWord) {
-                // letter was in word
-                // TODO payout reward if it was solved
-                return "Letter was in the word";
-            } else {
-                // letter was not found
-                guessesLeft--;
-                // TODO: If this was the last guess: Payout and next word
-                return "Letter was not in the word";
-            }
-            
-        } else {
-            // TODO: check if this case can happen!!!
-            // no guesses left for this word, this case should not happen
-            // paypack the value to sender
-            (msg.sender).transfer(msg.value);
-            nextWord();
-            return "No guesses left for this word. Try the next one.";
+        if (guessesLeft == 0) {
+            puzzleNotSolved();
         }
     }
     
     function guessWord(string memory word) public payable returns(bool) {
         bytes memory wordBytes = bytes(word);
-        amount += msg.value;
-        
+       
         if (wordBytes.length != currentWord.length) {
             return false;
         }
@@ -85,9 +64,18 @@ contract Hangman {
         }
         
         // word is correct
-        // TODO payout reward
-        nextWord();
+        puzzleSolved();
         return true;
+    }
+    
+    function puzzleSolved() internal {
+        msg.sender.transfer(msg.value);
+        nextWord();
+    }
+    
+    function puzzleNotSolved() internal {
+        creator.transfer(address(this).balance);
+        nextWord();
     }
     
     function nextWord() internal {
@@ -111,7 +99,7 @@ contract Hangman {
         guessesLeft = MAX_GUESSES;
     }
     
-    function isWordSolved() internal returns(bool){
+    function isWordSolved() internal view returns(bool){
         for (uint i = 0; i < solvedBytes.length; i++) {
             if (solvedBytes[i] == "-") {
                 return false;
