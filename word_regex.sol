@@ -6,7 +6,7 @@ library WordRegex {
     function (byte) pure internal returns (State memory) func;
   }
 
-  string public constant regex = "[A-Z]+";
+  string public constant regex = "[a-z]+";
 
   function s0(byte c) pure internal returns (State memory) {
     c = c;
@@ -14,7 +14,7 @@ library WordRegex {
   }
 
   function s1(byte c) pure internal returns (State memory) {
-    if (c >= 65 && c <= 90) {
+    if (c >= 97 && c <= 122) {
       return State(true, s2);
     }
 
@@ -22,7 +22,7 @@ library WordRegex {
   }
 
   function s2(byte c) pure internal returns (State memory) {
-    if (c >= 65 && c <= 90) {
+    if (c >= 97 && c <= 122) {
       return State(true, s3);
     }
 
@@ -30,7 +30,7 @@ library WordRegex {
   }
 
   function s3(byte c) pure internal returns (State memory) {
-    if (c >= 65 && c <= 90) {
+    if (c >= 97 && c <= 122) {
       return State(true, s3);
     }
 

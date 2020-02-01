@@ -5,7 +5,8 @@ contract Hangman {
     uint WORD_GUESS_COST = 0.0005 ether; // ~ 8ct on 1st February 2020
     
     uint MAX_GUESSES = 11;
-    string[5] WORDS = ["test", "hangman", "ethereum", "cryptocurrency", "foo"];
+    string[] WORDS = ["test", "hangman", "ethereum", "cryptocurrency", "foo"];
+    uint wordInsertPtr;
     
     bytes internal currentWord;
     bytes internal solvedBytes;
@@ -26,10 +27,19 @@ contract Hangman {
         return string(abi.encodePacked(solvedBytes, "\n Number of guesses left: ", uint2str(guessesLeft)));
     }
 
+    // Allows to enter a new word into the list of words.
+    // The proposed word must match [a-z]+
+    function proposeWord(string memory word) public {
+        if (WordRegex.matches(word)) {
+            WORDS[wordInsertPtr] = word;
+            wordInsertPtr += 1; // TODO: limit #words?
+        }
+    }
+
     function guessLetter(string memory letter) public payable {
         // check payed fee
         require(msg.value >= LETTER_GUESS_COST, string(abi.encodePacked("Please pay at least ", uint2str(LETTER_GUESS_COST), " wei")));
-        
+
         bytes memory letterBytes = bytes(letter);
         // validate input
         require(letterBytes.length == 1, "You have to input only ONE lowercase letter");
