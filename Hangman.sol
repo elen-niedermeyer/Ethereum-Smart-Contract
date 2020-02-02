@@ -1,5 +1,7 @@
 pragma solidity >=0.5.0;
 
+import './word_regex';
+
 contract Hangman {
     uint LETTER_GUESS_COST = 0.0003 ether; // ~ 5ct on 1st February 2020
     uint WORD_GUESS_COST = 0.0005 ether; // ~ 8ct on 1st February 2020
