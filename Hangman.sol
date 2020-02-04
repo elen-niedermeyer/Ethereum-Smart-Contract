@@ -1,6 +1,6 @@
 pragma solidity >=0.5.0;
 
-import './word_regex';
+import "./word_regex.sol";
 
 contract Hangman {
     uint LETTER_GUESS_COST = 0.0003 ether; // ~ 5ct on 1st February 2020
@@ -12,6 +12,8 @@ contract Hangman {
     
     bytes internal currentWord;
     bytes internal solvedBytes;
+    // hold the letters guessed for the current word
+    string internal guessedLetters;
     uint internal guessesLeft;
     
     uint internal nextIndex;
@@ -26,7 +28,13 @@ contract Hangman {
     }
     
     function getPuzzleState() public view returns(string memory state) {
-        return string(abi.encodePacked(solvedBytes, "\n Number of guesses left: ", uint2str(guessesLeft)));
+        return string(abi.encodePacked(
+            solvedBytes,
+            "\nNumber of guesses left: ",
+            uint2str(guessesLeft),
+            "\nGuessed letters: ",
+            guessedLetters
+        ));
     }
 
     // Allows to enter a new word into the list of words.
@@ -45,6 +53,10 @@ contract Hangman {
         bytes memory letterBytes = bytes(letter);
         // validate input
         require(letterBytes.length == 1, "You have to input only ONE lowercase letter");
+        
+        // add to already guessed letters - very costly :|
+        if (indexOf(guessedLetters, letter) == -1)
+            guessedLetters = concat(guessedLetters, letter);
         
         bool isLetterInWord = false;
         for (uint i = 0; i < currentWord.length; i++) {
@@ -129,6 +141,8 @@ contract Hangman {
          
         // reset number of guesses   
         guessesLeft = MAX_GUESSES;
+        // reset guessed letters
+        guessedLetters = "";
     }
     
     // copied from the internet
@@ -149,5 +163,71 @@ contract Hangman {
             _i /= 10;
         }
         return string(bstr);
+    }
+    
+    /**
+     * Index Of
+     *
+     * Locates and returns the position of a character within a string
+     * 
+     * @param _base When being used for a data type this is the extended object
+     *              otherwise this is the string acting as the haystack to be
+     *              searched
+     * @param _value The needle to search for, at present this is currently
+     *               limited to one character
+     * @return int The position of the needle starting from 0 and returning -1
+     *             in the case of no matches found
+     */
+    function indexOf(string memory _base, string memory _value) internal pure returns (int) {
+        return _indexOf(_base, _value, 0);
+    }
+    function _indexOf(string memory _base, string memory _value, uint _offset) internal pure returns (int) {
+        bytes memory _baseBytes = bytes(_base);
+        bytes memory _valueBytes = bytes(_value);
+
+        assert(_valueBytes.length == 1);
+
+        for (uint i = _offset; i < _baseBytes.length; i++) {
+            if (_baseBytes[i] == _valueBytes[0]) {
+                return int(i);
+            }
+        }
+
+        return -1;
+    }
+    
+     /**
+     * Concat (High gas cost)
+     * 
+     * Appends two strings together and returns a new value
+     * 
+     * @param _base When being used for a data type this is the extended object
+     *              otherwise this is the string which will be the concatenated
+     *              prefix
+     * @param _value The value to be the concatenated suffix
+     * @return string The resulting string from combinging the base and value
+     */
+    function concat(string memory _base, string memory _value) internal pure returns (string memory) {
+        bytes memory _baseBytes = bytes(_base);
+        bytes memory _valueBytes = bytes(_value);
+
+        assert(_valueBytes.length > 0);
+
+        string memory _tmpValue = new string(_baseBytes.length +
+            _valueBytes.length);
+        bytes memory _newValue = bytes(_tmpValue);
+
+        uint i;
+        uint j;
+
+        for (i = 0; i < _baseBytes.length; i++) {
+            _newValue[j++] = _baseBytes[i];
+        }
+
+        for (i = 0; i < _valueBytes.length; i++) {
+            _newValue[j++] = _valueBytes[i];
+        }
+
+        return string(_newValue);
     }
 }
