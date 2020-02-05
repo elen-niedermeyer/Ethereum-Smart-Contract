@@ -54,14 +54,14 @@ contract Hangman {
         // validate input
         require(letterBytes.length == 1, "You have to input only ONE lowercase letter");
         
-        // add to already guessed letters - very costly :|
+        // add to already guessed letters
         bool alreadyGuessed = false;
-        for (uint i = 0; i < guessedLetters2.length; i++) {
-            if (guessedLetters2[i] == letterBytes[0]) // should be one byte
+        for (uint i = 0; i < guessedLetters.length; i++) {
+            if (guessedLetters[i] == letterBytes[0]) // should be one byte
                 alreadyGuessed = true;
         }
         if (!alreadyGuessed)
-            guessedLetters2.push(letterBytes[0]);
+            guessedLetters.push(letterBytes[0]);
         
         bool isLetterInWord = false;
         for (uint i = 0; i < currentWord.length; i++) {
