@@ -13,7 +13,7 @@ contract Hangman {
     bytes internal currentWord;
     bytes internal solvedBytes;
     // hold the letters guessed for the current word
-    string internal guessedLetters;
+    bytes internal guessedLetters;
     uint internal guessesLeft;
     
     uint internal nextIndex;
@@ -55,8 +55,13 @@ contract Hangman {
         require(letterBytes.length == 1, "You have to input only ONE lowercase letter");
         
         // add to already guessed letters - very costly :|
-        if (indexOf(guessedLetters, letter) == -1)
-            guessedLetters = concat(guessedLetters, letter);
+        bool alreadyGuessed = false;
+        for (uint i = 0; i < guessedLetters2.length; i++) {
+            if (guessedLetters2[i] == letterBytes[0]) // should be one byte
+                alreadyGuessed = true;
+        }
+        if (!alreadyGuessed)
+            guessedLetters2.push(letterBytes[0]);
         
         bool isLetterInWord = false;
         for (uint i = 0; i < currentWord.length; i++) {
@@ -142,7 +147,7 @@ contract Hangman {
         // reset number of guesses   
         guessesLeft = MAX_GUESSES;
         // reset guessed letters
-        guessedLetters = "";
+        guessedLetters = new bytes(0);
     }
     
     // copied from the internet
