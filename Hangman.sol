@@ -40,6 +40,8 @@ contract Hangman {
     // Allows to enter a new word into the list of words.
     // The proposed word must match [a-z]+
     function proposeWord(string memory word) public {
+        require(bytes(word).length < 40, "Max word length is 40 letters.");
+
         if (WordRegex.matches(word)) {
             WORDS[wordInsertPtr] = word;
             wordInsertPtr += 1; // TODO: limit #words?
