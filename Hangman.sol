@@ -7,7 +7,7 @@ contract Hangman {
     uint WORD_GUESS_COST = 0.0005 ether; // ~ 8ct on 1st February 2020
     
     uint MAX_GUESSES = 11;
-    string[] WORDS = ["test", "hangman", "ethereum", "cryptocurrency", "foo"];
+    string[] WORDS = ["ethereum", "cryptocurrency"];
     uint wordInsertPtr;
     
     bytes internal currentWord;
@@ -169,5 +169,5 @@ contract Hangman {
         }
         return string(bstr);
     }
-
+    
 }
