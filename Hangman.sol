@@ -26,6 +26,7 @@ contract Hangman {
         // initialize ring buffer
         if (WORDS.length > 0)
         	word_ptr_end = WORDS.length - 1;
+    	word_ptr_start = MAX_WORDS; // will be advanced within nextWord
         
         nextWord();
     }
