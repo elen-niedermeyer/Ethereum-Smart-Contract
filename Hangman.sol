@@ -7,22 +7,27 @@ contract Hangman {
     uint WORD_GUESS_COST = 0.0005 ether; // ~ 8ct on 1st February 2020
     
     uint MAX_GUESSES = 11;
-    string[] WORDS = ["ethereum", "cryptocurrency"];
+    uint MAX_WORDS = 10;
+    string[10] WORDS = ["ethereum", "cryptocurrency"];
+    uint word_ptr_start;
+    uint word_ptr_end;
     
     bytes internal currentWord;
     bytes internal solvedBytes;
     // hold the letters guessed for the current word
     bytes internal guessedLetters;
     uint internal guessesLeft;
-    
-    uint internal nextIndex;
-    
+        
     address payable private creator;
     
     constructor() public {
         creator = msg.sender;
+
+        // initialize ring buffer
+        if (WORDS.length > 0)
+        	word_ptr_end = WORDS.length - 1;
+        word_ptr_start = MAX_WORDS; // will be advanced within nextWord()
         
-        nextIndex = 0;
         nextWord();
     }
     
@@ -40,9 +45,10 @@ contract Hangman {
     // The proposed word must match [a-z]+
     function proposeWord(string memory word) public {
         require(bytes(word).length < 40, "Max word length is 40 letters.");
+        require(!isBufferFull(), "Max number of words (10) reached. Solve a puzzle first before proposing new words.");
 
         if (WordRegex.matches(word)) {
-            WORDS.push(word);
+        	WORDS[nextInsertPos()] = word;
         }
     }
 
@@ -129,15 +135,8 @@ contract Hangman {
     
     function nextWord() internal {
         // next word
-        currentWord = bytes(WORDS[nextIndex]);
-        
-        // update index
-        if (nextIndex == WORDS.length-1) {
-            nextIndex = 0;
-        } else {
-            nextIndex++;
-        }
-            
+        currentWord = bytes(WORDS[movePointer()]);
+                    
         // reset solved bytes
         solvedBytes = bytes(currentWord);
         for (uint i = 0; i < solvedBytes.length; i++) {
@@ -169,5 +168,39 @@ contract Hangman {
         }
         return string(bstr);
     }
-    
+
+    // check if the words ring buffer is full
+    function isBufferFull() internal view returns (bool) {
+        return getNextInsertPos() == word_ptr_start;
+    }
+
+    // query next ring buffer insert pos
+    function getNextInsertPos() internal view returns (uint) {
+        uint a = word_ptr_end + 1;
+        if (a > MAX_WORDS - 1)
+            return 0;
+        else
+            return a;
+    }
+
+    // advance ring buffer insert pointer and return it
+    function nextInsertPos() internal returns (uint) {
+        uint a = word_ptr_end + 1;
+        if (a > MAX_WORDS - 1)
+            word_ptr_end = 0;
+        else
+            word_ptr_end = a;
+        return word_ptr_end;
+    }
+
+    // advance ring buffer current pointer and return ist
+    function movePointer() internal returns (uint) {
+        uint a = word_ptr_start + 1;
+        if (a > MAX_WORDS - 1)
+            word_ptr_start = 0;
+        else
+            word_ptr_start = a;
+        return word_ptr_start;
+    }
+
 }
