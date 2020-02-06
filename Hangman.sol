@@ -120,7 +120,7 @@ contract Hangman {
     }
 
     function puzzleSolved() internal {
-        msg.sender.transfer(msg.value);
+        msg.sender.transfer(address(this).balance);
         nextWord();
     }
     
