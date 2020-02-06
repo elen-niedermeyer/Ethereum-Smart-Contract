@@ -8,7 +8,7 @@ contract Hangman {
     
     uint MAX_GUESSES = 11;
     uint MAX_WORDS = 10;
-    string[] WORDS = ["ethereum", "cryptocurrency"];
+    string[10] WORDS = ["ethereum", "cryptocurrency"];
     uint word_ptr_start;
     uint word_ptr_end;
     
@@ -26,7 +26,7 @@ contract Hangman {
         // initialize ring buffer
         if (WORDS.length > 0)
         	word_ptr_end = WORDS.length - 1;
-    	word_ptr_start = MAX_WORDS; // will be advanced within nextWord
+        word_ptr_start = MAX_WORDS; // will be advanced within nextWord()
         
         nextWord();
     }
@@ -171,27 +171,36 @@ contract Hangman {
 
     // check if the words ring buffer is full
     function isBufferFull() internal view returns (bool) {
-    	return word_ptr_end + 1 == word_ptr_start;
+        return getNextInsertPos() == word_ptr_start;
+    }
+
+    // query next ring buffer insert pos
+    function getNextInsertPos() internal view returns (uint) {
+        uint a = word_ptr_end + 1;
+        if (a > MAX_WORDS - 1)
+            return 0;
+        else
+            return a;
     }
 
     // advance ring buffer insert pointer and return it
     function nextInsertPos() internal returns (uint) {
-    	uint a = word_ptr_end + 1;
-    	if (a > MAX_WORDS - 1)
-    		word_ptr_end = 0;
-    	else
-    		word_ptr_end = a;
-    	return word_ptr_end;
+        uint a = word_ptr_end + 1;
+        if (a > MAX_WORDS - 1)
+            word_ptr_end = 0;
+        else
+            word_ptr_end = a;
+        return word_ptr_end;
     }
-    
+
     // advance ring buffer current pointer and return ist
     function movePointer() internal returns (uint) {
-    	uint a = word_ptr_start + 1;
-    	if (a > MAX_WORDS - 1)
-    		word_ptr_start = 0;
-		else
-			word_ptr_start = a;
-    	return word_ptr_start;
+        uint a = word_ptr_start + 1;
+        if (a > MAX_WORDS - 1)
+            word_ptr_start = 0;
+        else
+            word_ptr_start = a;
+        return word_ptr_start;
     }
 
 }
