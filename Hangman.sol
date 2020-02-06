@@ -1,3 +1,4 @@
+
 pragma solidity >=0.5.0;
 
 import "./word_regex.sol";
@@ -8,7 +9,8 @@ contract Hangman {
     
     uint MAX_GUESSES = 11;
     uint MAX_WORDS = 10;
-    string[10] WORDS = ["ethereum", "cryptocurrency"];
+    
+    string[10] words = ["ethereum", "cryptocurrency"];
     uint word_ptr_start;
     uint word_ptr_end;
     
@@ -24,14 +26,14 @@ contract Hangman {
         creator = msg.sender;
 
         // initialize ring buffer
-        if (WORDS.length > 0)
-        	word_ptr_end = WORDS.length - 1;
+        if (words.length > 0)
+        	word_ptr_end = words.length - 1;
         word_ptr_start = MAX_WORDS; // will be advanced within nextWord()
         
         nextWord();
     }
     
-    function getPuzzleState() public view returns(string memory state) {
+    function getPuzzleState() public view returns (string memory state) {
         return string(abi.encodePacked(
             solvedBytes,
             "\nNumber of guesses left: ",
@@ -44,17 +46,24 @@ contract Hangman {
     // Allows to enter a new word into the list of words.
     // The proposed word must match [a-z]+
     function proposeWord(string memory word) public {
+        // check length of word
         require(bytes(word).length < 40, "Max word length is 40 letters.");
+        
+        // check bytes with regex
+        require(WordRegex.matches(word), "Invalid character. You can only input lowercase letters.");
+        
+        // check buffer
         require(!isBufferFull(), "Max number of words (10) reached. Solve a puzzle first before proposing new words.");
 
-        if (WordRegex.matches(word)) {
-        	WORDS[nextInsertPos()] = word;
-        }
+        words[nextInsertPos()] = word;
     }
 
     function guessLetter(string memory letter) public payable {
         // check payed fee
         require(msg.value >= LETTER_GUESS_COST, string(abi.encodePacked("Please pay at least ", uint2str(LETTER_GUESS_COST), " wei")));
+
+        // check bytes with regex
+        require(WordRegex.matches(letter), "Invalid character. You can only input lowercase letters.");
 
         bytes memory letterBytes = bytes(letter);
         // validate input
@@ -92,7 +101,7 @@ contract Hangman {
         }
     }
     
-    function guessWord(string memory word) public payable returns(bool) { 
+    function guessWord(string memory word) public payable returns (bool) { 
         // check payed fee
         require(msg.value >= WORD_GUESS_COST, string(abi.encodePacked("Please pay at least ", uint2str(WORD_GUESS_COST), " wei")));
         
@@ -113,7 +122,7 @@ contract Hangman {
         return true;
     }
     
-    function isWordSolved() internal view returns(bool){
+    function isWordSolved() internal view returns (bool){
         for (uint i = 0; i < solvedBytes.length; i++) {
             if (solvedBytes[i] == "-") {
                 return false;
@@ -135,7 +144,7 @@ contract Hangman {
     
     function nextWord() internal {
         // next word
-        currentWord = bytes(WORDS[movePointer()]);
+        currentWord = bytes(words[movePointer()]);
                     
         // reset solved bytes
         solvedBytes = bytes(currentWord);
@@ -150,6 +159,7 @@ contract Hangman {
     }
     
     // copied from the internet
+    // turns int into string
     function uint2str(uint _i) internal pure returns (string memory _uintAsString) {
         if (_i == 0) {
             return "0";
