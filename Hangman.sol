@@ -8,7 +8,6 @@ contract Hangman {
     
     uint MAX_GUESSES = 11;
     string[] WORDS = ["ethereum", "cryptocurrency"];
-    uint wordInsertPtr;
     
     bytes internal currentWord;
     bytes internal solvedBytes;
@@ -43,8 +42,7 @@ contract Hangman {
         require(bytes(word).length < 40, "Max word length is 40 letters.");
 
         if (WordRegex.matches(word)) {
-            WORDS[wordInsertPtr] = word;
-            wordInsertPtr += 1; // TODO: limit #words?
+            WORDS.push(word);
         }
     }
 
