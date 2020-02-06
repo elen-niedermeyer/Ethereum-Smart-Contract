@@ -11,8 +11,8 @@ contract Hangman {
     uint MAX_WORDS = 10;
     
     string[10] words = ["ethereum", "cryptocurrency"];
-    uint word_ptr_start;
-    uint word_ptr_end;
+    uint word_ptr_start = 10;
+    uint word_ptr_end = 1;
     
     bytes internal currentWord;
     bytes internal solvedBytes;
@@ -24,12 +24,6 @@ contract Hangman {
     
     constructor() public {
         creator = msg.sender;
-
-        // initialize ring buffer
-        if (words.length > 0)
-        	word_ptr_end = words.length - 1;
-        word_ptr_start = MAX_WORDS; // will be advanced within nextWord()
-        
         nextWord();
     }
     
